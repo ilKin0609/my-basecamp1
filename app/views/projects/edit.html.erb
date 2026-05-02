@@ -1,0 +1,49 @@
+<h1>Edit Project</h1>
+<p>Created by: <%= @project.user.email %></p>
+
+<%= render "form", project: @project %>
+
+<hr>
+
+<h2>Members</h2>
+<ul>
+  <% @project.memberships.each do |membership| %>
+    <li>
+      <%= membership.user.email %>
+      <% if membership.is_admin %>
+        <strong>(Admin)</strong>
+      <% end %>
+      
+      <% if membership.user != @project.user %>
+        <%= button_to (membership.is_admin ? "Remove Admin" : "Make Admin"), 
+            project_membership_path(@project, membership), 
+            method: :patch %>
+        
+        <%= button_to "Remove Member", 
+            project_membership_path(@project, membership), 
+            method: :delete, 
+            data: { confirm: "Are you sure?" } %>
+      <% else %>
+        <em>(Creator)</em>
+      <% end %>
+    </li>
+  <% end %>
+</ul>
+
+<h3>Add Member</h3>
+<%= form_with(url: project_memberships_path(@project), method: :post, local: true) do |f| %>
+  <div>
+    <%= f.label :email, "Member Email" %>
+    <%= f.email_field :email, required: true %>
+  </div>
+  <div>
+    <%= f.check_box :is_admin %>
+    <%= f.label :is_admin, "Admin" %>
+  </div>
+  <%= f.submit "Add Member" %>
+<% end %>
+
+<hr>
+
+<%= link_to "Back to project", @project %>
+<%= button_to "Delete Project", @project, method: :delete, data: { confirm: "Are you sure?" } %>
