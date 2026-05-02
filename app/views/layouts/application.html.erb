@@ -24,12 +24,29 @@
   </head>
 
   <body>
-   <% if notice %>
+    <% if user_signed_in? %>
+      <nav class="navbar">
+        <div class="navbar-brand">
+          <%= link_to "Collaborate", root_path %>
+        </div>
+        <div class="navbar-menu">
+          <span class="user-email"><%= current_user.email %></span>
+          <%= link_to "+ Add Project", new_project_path, class: "nav-link" %>
+          <%= link_to "My Projects", projects_path, class: "nav-link" %>
+          <%= button_to "Sign out", destroy_user_session_path, method: :delete, form: { style: "display: inline" }, class: "btn-logout" %>
+        </div>
+      </nav>
+    <% end %>
+
+    <% if notice %>
       <p class="notice"><%= notice %></p>
     <% end %>
     <% if alert %>
       <p class="alert"><%= alert %></p>
     <% end %>
-    <%= yield %>
+
+    <main class="content-wrapper">
+      <%= yield %>
+    </main>
   </body>
 </html>

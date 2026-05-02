@@ -1,27 +1,34 @@
 <h1>Projects</h1>
 
-<%= link_to "+ Add Project", new_project_path %>
-
-<div style="margin: 20px 0;">
-  <%= link_to "✱ All projects", projects_path %> |
-  <%= link_to "✏ Created by me", projects_path(filter: "created") %> |
-  <%= link_to "👥 Shared with me", projects_path(filter: "shared") %>
+<div class="filters">
+  <%= link_to "All projects", projects_path %>
+  <%= link_to "Created by me", projects_path(filter: "created") %>
+  <%= link_to "Shared with me", projects_path(filter: "shared") %>
 </div>
 
-<div>
+<div class="projects-grid">
   <% if @projects.any? %>
     <% @projects.each do |project| %>
-      <div style="border: 1px solid #ccc; padding: 10px; margin: 10px;">
-        <h3><%= link_to project.name, project %></h3>
-        <p>👤 <%= project.user.email %></p>
-        <p><%= project.description %></p>
-        <p>👥 <%= project.members.count %> members</p>
+      <div class="project-card">
+        <div class="project-card-header">
+          <h3><%= link_to project.name, project %></h3>
+          <small><%= project.user.email %></small>
+        </div>
+        <div class="project-card-body">
+          <p><%= project.description %></p>
+          <div class="project-card-stats">
+            <span><%= project.members.count %> members</span>
+            <span><%= project.topics.count %> discussions</span>
+          </div>
+        </div>
         <% if project.user == current_user %>
-          <%= button_to "Delete", project, method: :delete, data: { confirm: "Are you sure?" } %>
+          <div class="project-card-footer">
+            <%= button_to "Delete", project, method: :delete, data: { confirm: "Are you sure?" }, class: "btn-delete-small" %>
+          </div>
         <% end %>
       </div>
     <% end %>
   <% else %>
-    <p>No projects yet.</p>
+    <p class="empty-state">No projects yet. Create your first one!</p>
   <% end %>
 </div>

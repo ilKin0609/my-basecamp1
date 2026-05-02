@@ -1,126 +1,134 @@
-<h1><%= @project.name %></h1>
-<p>Created by: <%= @project.user.email %></p>
+<div class="project-header">
+  <h1><%= @project.name %></h1>
+  <p class="created-by">Created by: <%= @project.user.email %></p>
+</div>
 
-<% if @project.admin?(current_user) %>
-  <%= link_to "⚙ Edit Project", edit_project_path(@project) %>
-<% end %>
-<%= link_to "← Back to projects", projects_path %>
-
-<hr>
-
-<p><%= @project.description %></p>
-
-<h3>Members:</h3>
-<ul>
-  <% @project.all_participants.each do |participant| %>
-    <li>
-      <%= participant.email %>
-      <% if @project.admin?(participant) %>
-        <strong>(Admin)</strong>
-      <% end %>
-    </li>
+<div class="project-actions">
+  <% if @project.admin?(current_user) %>
+    <%= link_to "Edit Project", edit_project_path(@project), class: "btn-edit" %>
   <% end %>
-</ul>
+  <%= link_to "Back to projects", projects_path, class: "btn-back" %>
+</div>
 
 <hr>
 
-<!-- DISCUSSIONS / TOPICS -->
-<h2>💬 Discussions</h2>
+<p class="project-description"><%= @project.description %></p>
 
-<%= form_with(url: project_topics_path(@project), method: :post, local: true) do |f| %>
-  <div>
-    <%= f.label :title, "New Discussion Title" %>
-    <%= f.text_field :title, name: "topic[title]", required: true, placeholder: "Topic title..." %>
-    <%= f.submit "+ New Discussion" %>
-  </div>
-<% end %>
-
-<% @project.topics.order(created_at: :desc).each do |topic| %>
-  <div id="topic-<%= topic.id %>" style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
-    <h3><%= topic.title %></h3>
-    <small>by <%= topic.user.email %></small>
-    
-    <% if topic.user == current_user %>
-      <%= button_to "🗑 Delete Topic", project_topic_path(@project, topic), method: :delete, data: { confirm: "Are you sure?" } %>
+<div class="members-section">
+  <h3>Members</h3>
+  <ul class="members-list">
+    <% @project.all_participants.each do |participant| %>
+      <li>
+        <%= participant.email %>
+        <% if @project.admin?(participant) %>
+          <span class="admin-badge">Admin</span>
+        <% end %>
+      </li>
     <% end %>
+  </ul>
+</div>
 
-    <!-- Messages -->
-    <div style="margin-left: 20px; margin-top: 10px;">
-      <% topic.messages.order(:created_at).each do |message| %>
-        <div style="background: #f0f0f0; padding: 8px; margin: 5px 0;">
-          <strong><%= message.user.email %>:</strong>
-          <%= message.content %>
-          
-          <% if message.user == current_user %>
-            <%= button_to "x", project_topic_message_path(@project, topic, message), method: :delete, data: { confirm: "Delete?" } %>
-          <% end %>
-        </div>
-      <% end %>
+<hr>
 
-      <!-- New Message Form -->
-      <%= form_with(url: project_topic_messages_path(@project, topic), method: :post, local: true) do |f| %>
-        <%= f.text_field :content, name: "message[content]", placeholder: "Type a message...", required: true %>
-        <%= f.submit "Send" %>
-      <% end %>
+<!-- DISCUSSIONS -->
+<section class="section-block">
+  <h2>Discussions</h2>
+
+  <%= form_with(url: project_topics_path(@project), method: :post, local: true, class: "inline-form") do |f| %>
+    <div class="form-row">
+      <%= f.text_field :title, name: "topic[title]", required: true, placeholder: "Discussion title..." %>
+      <%= f.submit "New Discussion", class: "btn-primary" %>
     </div>
-  </div>
-<% end %>
+  <% end %>
+
+  <% @project.topics.order(created_at: :desc).each do |topic| %>
+    <div id="topic-<%= topic.id %>" class="topic-card">
+      <div class="topic-header">
+        <h3><%= topic.title %></h3>
+        <small>by <%= topic.user.email %></small>
+        <% if topic.user == current_user %>
+          <%= button_to "Delete", project_topic_path(@project, topic), method: :delete, data: { confirm: "Are you sure?" }, class: "btn-delete-small" %>
+        <% end %>
+      </div>
+
+      <div class="messages-container">
+        <% topic.messages.order(:created_at).each do |message| %>
+          <div class="message-bubble">
+            <strong><%= message.user.email %>:</strong>
+            <%= message.content %>
+            <% if message.user == current_user %>
+              <%= button_to "×", project_topic_message_path(@project, topic, message), method: :delete, data: { confirm: "Delete?" }, class: "btn-delete-x" %>
+            <% end %>
+          </div>
+        <% end %>
+
+        <%= form_with(url: project_topic_messages_path(@project, topic), method: :post, local: true, class: "message-form") do |f| %>
+          <%= f.text_field :content, name: "message[content]", placeholder: "Type a message...", required: true %>
+          <%= f.submit "Send", class: "btn-primary" %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</section>
 
 <hr>
 
 <!-- TASKS -->
-<h2>✅ Tasks</h2>
+<section class="section-block">
+  <h2>Tasks</h2>
 
-<%= form_with(url: project_tasks_path(@project), method: :post, local: true) do |f| %>
-  <div>
-    <%= f.label :title, "New Task" %>
-    <%= f.text_field :title, name: "task[title]", required: true, placeholder: "Task title..." %>
-    <%= f.submit "+ New Task" %>
-  </div>
-<% end %>
-
-<ul style="list-style: none; padding: 0;">
-  <% @project.tasks.order(created_at: :desc).each do |task| %>
-    <li style="padding: 8px; border-bottom: 1px solid #eee;">
-      <%= button_to (task.completed ? "✅" : "⬜"), project_task_path(@project, task), method: :patch, form: { style: "display: inline" } %>
-      
-      <% if task.completed %>
-        <s><%= task.title %></s>
-      <% else %>
-        <%= task.title %>
-      <% end %>
-      
-      <small>(by <%= task.user.email %>)</small>
-      
-      <%= button_to "🗑", project_task_path(@project, task), method: :delete, data: { confirm: "Delete?" }, form: { style: "display: inline" } %>
-    </li>
+  <%= form_with(url: project_tasks_path(@project), method: :post, local: true, class: "inline-form") do |f| %>
+    <div class="form-row">
+      <%= f.text_field :title, name: "task[title]", required: true, placeholder: "Task title..." %>
+      <%= f.submit "New Task", class: "btn-primary" %>
+    </div>
   <% end %>
-</ul>
+
+  <ul class="tasks-list">
+    <% @project.tasks.order(created_at: :desc).each do |task| %>
+      <li class="task-item <%= 'task-completed' if task.completed %>">
+        <%= button_to (task.completed ? "[x]" : "[ ]"), project_task_path(@project, task), method: :patch, form: { style: "display: inline" }, class: "task-checkbox" %>
+        
+        <span class="task-title">
+          <% if task.completed %>
+            <s><%= task.title %></s>
+          <% else %>
+            <%= task.title %>
+          <% end %>
+        </span>
+        
+        <small class="task-author">(by <%= task.user.email %>)</small>
+        
+        <%= button_to "Delete", project_task_path(@project, task), method: :delete, data: { confirm: "Delete?" }, form: { style: "display: inline" }, class: "btn-delete-small" %>
+      </li>
+    <% end %>
+  </ul>
+</section>
 
 <hr>
 
 <!-- ATTACHMENTS -->
-<h2>📎 Attachments</h2>
+<section class="section-block">
+  <h2>Attachments</h2>
 
-<%= form_with(url: project_attachments_path(@project), method: :post, local: true, multipart: true) do |f| %>
-  <div>
-    <%= f.label :files, "Add attachments:" %>
-    <%= f.file_field :files, multiple: true, name: "files[]" %>
-    <%= f.submit "Upload" %>
-  </div>
-<% end %>
+  <%= form_with(url: project_attachments_path(@project), method: :post, local: true, multipart: true, class: "inline-form") do |f| %>
+    <div class="form-row">
+      <%= f.file_field :files, multiple: true, name: "files[]" %>
+      <%= f.submit "Upload", class: "btn-primary" %>
+    </div>
+  <% end %>
 
-<% if @project.attachments.any? %>
-  <ul style="list-style: none; padding: 0;">
-    <% @project.attachments.each do |attachment| %>
-      <li style="padding: 8px; border-bottom: 1px solid #eee;">
-        📄 <%= link_to attachment.filename, rails_blob_path(attachment, disposition: "attachment") %>
-        <small>(<%= number_to_human_size(attachment.byte_size) %>)</small>
-        
-        <%= button_to "🗑", project_attachment_path(@project, attachment.id), method: :delete, data: { confirm: "Delete this file?" }, form: { style: "display: inline" } %>
-      </li>
-    <% end %>
-  </ul>
-<% else %>
-  <p>No attachments yet.</p>
-<% end %>
+  <% if @project.attachments.any? %>
+    <ul class="attachments-list">
+      <% @project.attachments.each do |attachment| %>
+        <li class="attachment-item">
+          <%= link_to attachment.filename, rails_blob_path(attachment, disposition: "attachment"), class: "attachment-link" %>
+          <small>(<%= number_to_human_size(attachment.byte_size) %>)</small>
+          <%= button_to "Delete", project_attachment_path(@project, attachment.id), method: :delete, data: { confirm: "Delete this file?" }, form: { style: "display: inline" }, class: "btn-delete-small" %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="empty-state">No attachments yet.</p>
+  <% end %>
+</section>
