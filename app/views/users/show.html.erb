@@ -1,0 +1,22 @@
+<h1>User Profile</h1>
+
+<div class="user-profile">
+  <p><strong>Email:</strong> <%= @user.email %></p>
+  <p><strong>Member since:</strong> <%= @user.created_at.strftime("%B %d, %Y") %></p>
+  <p><strong>Projects created:</strong> <%= @user.projects.count %></p>
+</div>
+
+<% if @user == current_user %>
+  <div class="profile-actions">
+    <%= link_to "Edit Profile", edit_user_registration_path, class: "btn-primary" %>
+  </div>
+
+  <h3>My Projects</h3>
+  <ul>
+    <% @projects.each do |project| %>
+      <li><%= link_to project.name, project %></li>
+    <% end %>
+  </ul>
+<% end %>
+
+<%= link_to "Back", :back %>

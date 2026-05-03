@@ -1,6 +1,8 @@
 Rails.application.routes.draw do
   devise_for :users
   
+  resources :users, only: [:show]
+  
   resources :projects do
     resources :memberships, only: [:create, :destroy, :update]
     resources :topics, only: [:create, :destroy] do
