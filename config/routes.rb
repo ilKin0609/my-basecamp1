@@ -1,7 +1,11 @@
 Rails.application.routes.draw do
   devise_for :users
   
-  resources :users, only: [:show]
+  resources :users, only: [:index, :show, :destroy] do
+    member do
+      patch :toggle_admin
+    end
+  end
   
   resources :projects do
     resources :memberships, only: [:create, :destroy, :update]

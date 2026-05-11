@@ -2,6 +2,11 @@
 
 <div class="user-profile">
   <p><strong>Email:</strong> <%= @user.email %></p>
+  <% if @user.admin? %>
+    <p><strong>Role:</strong> <span class="admin-badge">Admin</span></p>
+  <% else %>
+    <p><strong>Role:</strong> <span class="user-badge">User</span></p>
+  <% end %>
   <p><strong>Member since:</strong> <%= @user.created_at.strftime("%B %d, %Y") %></p>
   <p><strong>Projects created:</strong> <%= @user.projects.count %></p>
 </div>
@@ -12,11 +17,38 @@
   </div>
 
   <h3>My Projects</h3>
+  <% if @projects.any? %>
+    <ul>
+      <% @projects.each do |project| %>
+        <li><%= link_to project.name, project %></li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p>No projects yet.</p>
+  <% end %>
+<% else %>
+  <h3>Public Projects</h3>
   <ul>
     <% @projects.each do |project| %>
-      <li><%= link_to project.name, project %></li>
+      <li><%= project.name %></li>
     <% end %>
   </ul>
 <% end %>
 
-<%= link_to "Back", :back %>
+<% if current_user.admin? && @user != current_user %>
+  <div class="admin-actions">
+    <h3>Admin Actions</h3>
+    <%= button_to (@user.admin? ? "Remove Admin" : "Make Admin"), 
+        toggle_admin_user_path(@user), 
+        method: :patch,
+        class: "btn-toggle-admin" %>
+    
+    <%= button_to "Delete User", 
+        user_path(@user), 
+        method: :delete, 
+        data: { confirm: "Are you sure?" },
+        class: "btn-delete-small" %>
+  </div>
+<% end %>
+
+<%= link_to "Back", :back, class: "btn-back" %>

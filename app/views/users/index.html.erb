@@ -1,0 +1,56 @@
+<h1>All Users</h1>
+
+<p class="users-count">Total users: <%= @users.count %></p>
+
+<table class="users-table">
+  <thead>
+    <tr>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Projects</th>
+      <th>Member Since</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @users.each do |user| %>
+      <tr>
+        <td>
+          <%= link_to user.email, user_path(user) %>
+          <% if user == current_user %>
+            <span class="badge-you">(You)</span>
+          <% end %>
+        </td>
+        <td>
+          <% if user.admin? %>
+            <span class="admin-badge">Admin</span>
+          <% else %>
+            <span class="user-badge">User</span>
+          <% end %>
+        </td>
+        <td><%= user.projects.count %></td>
+        <td><%= user.created_at.strftime("%B %d, %Y") %></td>
+        <td class="actions-cell">
+          <% if user != current_user %>
+            <%= button_to (user.admin? ? "Remove Admin" : "Make Admin"), 
+                toggle_admin_user_path(user), 
+                method: :patch,
+                class: "btn-toggle-admin",
+                form: { style: "display: inline" } %>
+            
+            <%= button_to "Delete", 
+                user_path(user), 
+                method: :delete, 
+                data: { confirm: "Are you sure you want to delete #{user.email}? This will delete all their projects too!" },
+                class: "btn-delete-small",
+                form: { style: "display: inline" } %>
+          <% else %>
+            <em>—</em>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<%= link_to "Back to Home", root_path, class: "btn-back" %>
